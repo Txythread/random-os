@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [build]
-target = "targets/rpi5.json"
+target = "targets/aarch64-unknown-none.json"
 
 [unstable]
 build-std = ["core", "compiler_builtins"]

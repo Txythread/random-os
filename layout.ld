@@ -1,18 +1,23 @@
-ENTRY(_start)
+ENTRY(_start_trampoline)
 
 SECTIONS
 {
-    . = 0x80000;             /* Load address for QEMU virt */
+	/* The trampoline, code that jumps to the kernel, sits here */
+	. = 0x00000;
+	.text.boot : {
+		KEEP(*(.text.trampoline))
+	}
 
-    .text : { *(.text*) } :text
-    .rodata : { *(.rodata*) } :text
-    .data : { *(.data*) } :data
-    .bss : { *(.bss*) } :data
+	/* The actual kernel sits here */
+	. = 0x80000;             /* Load address for QEMU virt if possible */
+	.text : { *(.text*) } :text
+	.rodata : { *(.rodata*) } :text
+	.data : { *(.data*) } :data
+	.bss : { *(.bss*) } :data
 }
 
 PHDRS
 {
-    text PT_LOAD FILEHDR PHDRS;
-    data PT_LOAD FILEHDR PHDRS;
+    text PT_LOAD;
+    data PT_LOAD;
 }
-
