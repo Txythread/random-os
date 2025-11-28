@@ -14,14 +14,19 @@ pub extern "C" fn _start_kernel() -> ! {
 	}
 }
 
-unsafe fn halt(code: u64) {
+unsafe fn halt(code: u64) -> ! {
 	// Arm64 halt
 	// Ask qemu to stop
 	core::arch::asm!(
 		"mov x0, {0}",
-		"mov x1, #0x18", // EXIT
+		"mov x1, 0x18", // EXIT
 		"hlt 0xF000", // semi-hosting call
 		in(reg) code,
+		options(noreturn)
+	);
+
+	core::arch::asm!(
+		"hlt",
 		options(noreturn)
 	);
 }
