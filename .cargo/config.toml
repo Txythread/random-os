@@ -1,9 +1,9 @@
 [build]
-target = "targets/aarch64-unknown-none.json"
+target = "targets/aarch64/aarch64.json"
 
-[target.aarch64-unknown-none]
+[target.aarch64]
 linker = "ld.lld"
 rustflags = [
-    "-C", "link-arg=-Tlayout.ld",
+    "-C", "link-arg=-Ttargets/aarch64/layout.ld",
     "-C", "link-arg=--gc-sections"
 ]

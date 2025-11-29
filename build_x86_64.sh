@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Set the name of the target here
-TARGET=aarch64
-#TARGET=x86_64
-CLANG_TARGET=aarch64-none-elf
-#CLANG_TARGET=x86_64-none-elf
+#TARGET=aarch64
+TARGET=x86_64
+#CLANG_TARGET=aarch64-none-elf
+CLANG_TARGET=x86_64-none-elf
 BUILD_DIR=target/$TARGET/release
 
 EDK2_DIR=efi
@@ -14,6 +14,9 @@ mkdir -p target/$TARGET
 clang --target=$CLANG_TARGET -c targets/$TARGET/trampoline.s -o target/$TARGET/boot-trampoline.o
 
 
+# Optionally assemble the reset vector for the target
+clang --target=$CLANG_TARGET -c targets/$TARGET/reset-vector.s -o target/$TARGET/reset-vector.o
+exit 0
 ls target
 ls target/$TARGET
 

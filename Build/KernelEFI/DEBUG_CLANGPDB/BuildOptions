@@ -1,3 +1,0 @@
-gCommandLineDefines: {'ARCH': 'AARCH64'}
-BuildOptionPcd: []
-Active Platform: /Users/michaelrudolf/osdev/os/efi/KernelEFI.dsc
