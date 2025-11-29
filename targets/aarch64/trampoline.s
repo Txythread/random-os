@@ -3,4 +3,4 @@
 	.global _start_trampoline
 
 _start_trampoline:
-	b	_start_kernel
+	b	_kernel_start

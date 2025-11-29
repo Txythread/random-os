@@ -1,4 +1,4 @@
-ENTRY(_start_trampoline)
+ENTRY(_kernel_start)
 
 SECTIONS
 {

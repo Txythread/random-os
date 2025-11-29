@@ -2,9 +2,10 @@
 #![no_main]
 
 use core::panic::PanicInfo;
+use uefi;
 
 #[unsafe(no_mangle)]
-pub extern "C" fn _start_kernel() -> ! {
+pub extern "C" fn _kernel_start() -> ! {
 	const VALUE: *mut u8 = 0x8050 as *mut u8;
 	loop {
 		unsafe {
