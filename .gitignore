@@ -1,5 +1,6 @@
 *.img
 *.iso
 *.bin
+grub
 target/
 .idea

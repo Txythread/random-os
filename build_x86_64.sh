@@ -3,11 +3,13 @@
 # Set the name of the target here
 #TARGET=aarch64
 TARGET=x86_64
-#CLANG_TARGET=aarch64-none-elf
 CLANG_TARGET=x86_64-none-elf
 BUILD_DIR=target/$TARGET/release
 
 EDK2_DIR=efi
+
+# Move the layout.ld file temporarily
+cp targets/$TARGET/layout.ld .
 
 # Build the trampoline
 mkdir -p target/$TARGET
@@ -16,7 +18,7 @@ clang --target=$CLANG_TARGET -c targets/$TARGET/trampoline.s -o target/$TARGET/b
 
 # Optionally assemble the reset vector for the target
 clang --target=$CLANG_TARGET -c targets/$TARGET/reset-vector.s -o target/$TARGET/reset-vector.o
-exit 0
+
 ls target
 ls target/$TARGET
 
@@ -31,10 +33,16 @@ cp $BUILD_DIR/deps/os-*.o $EDK2_DIR
 ld.lld -T layout.ld \
     target/$TARGET/boot-trampoline.o \
     $BUILD_DIR/deps/os-*.o \
-    -o kernel.elf
+    -o target/$TARGET/kernel.elf
 
 
+# Create an image
+truncate -s 64M disk.img
+mkfs.fat -F 32 disk.img
+DISK=$(hdiutil attach -imagekey diskimage-class=CRawDiskImage -nomount disk.img)
+mkdir -p mnt
+sudo mount -t msdos $DISK /Users/michaelrudolf/osdev/os/mnt
 
-# Extrapolate the raw binary from the elf
-llvm-objcopy -O binary kernel.elf \
-             ./os.bin
+
+# Remove temporary files
+rm layout.ld
