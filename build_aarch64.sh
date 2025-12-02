@@ -12,28 +12,33 @@ cp targets/$TARGET/layout.ld layout.ld
 mkdir -p target/$TARGET
 clang --target=$CLANG_TARGET -c targets/$TARGET/trampoline.s -o target/$TARGET/boot-trampoline.o
 
+# Build other binary data
+clang --target=$CLANG_TARGET -c src/asm/$TARGET/handle_alloc_error.s -o target/$TARGET/handle_alloc_error.o
+
 
 # Optionally assemble the reset vector for the target
 ls target
 ls target/$TARGET
 
 # Build the rust code
-cargo +nightly rustc -Z build-std=core,compiler_builtins --target targets/$TARGET/$TARGET.json --release -- --emit=obj
+#cargo +nightly rustc -Z build-std=core,compiler_builtins,alloc --target targets/$TARGET/$TARGET.json --release -- --emit=obj
+cargo +nightly rustc -Z build-std=core,compiler_builtins,alloc --target targets/$TARGET/$TARGET.json --release -- -C link-args="target/aarch64/boot-trampoline.o"
 
-# Create a copy for edk2
-cp $BUILD_DIR/deps/os-*.o $EDK2_DIR
+
+#h Create a copy for edk2
+#cp $BUILD_DIR/deps/os-*.o $EDK2_DIR
 
 # Link whatever cargo produced with whatever the trampoline
 # is into one singular elf.
-ld.lld -T targets/$TARGET/layout.ld \
-    target/$TARGET/boot-trampoline.o \
-    $BUILD_DIR/deps/os-*.o \
-    -o target/$TARGET/kernel.elf
+#ld.lld -T targets/$TARGET/layout.ld \
+#    target/$TARGET/boot-trampoline.o \
+#    $BUILD_DIR/deps/os-*.o \
+#    -o target/$TARGET/kernel.elf
 
 
 
 # Extrapolate the raw binary from the elf
-llvm-objcopy -O binary target/$TARGET/kernel.elf \
+llvm-objcopy -O binary target/$TARGET/release/os \
              target/$TARGET/os.bin
 
 

@@ -1,29 +1,79 @@
 #![no_std]
 #![no_main]
+#![feature(alloc_error_handler)]
+
+extern crate alloc;
 
 use core::panic::PanicInfo;
-use core::alloc;
-use core::alloc::vec::Vec;
 use core::alloc::{GlobalAlloc, Layout};
+use core::ptr;
 
-struct KernelAllocator { address: usize };
+#[unsafe(no_mangle)]
+pub extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
+    // Simple non-overlap implementation (good enough for kernel use)
+    unsafe {
+        let mut i = 0usize;
+        while i < n {
+            ptr::write(dest.add(i), ptr::read(src.add(i)));
+            i += 1;
+        }
+        dest
+    }
+}
+
+#[alloc_error_handler]
+fn handle_alloc_error(layout: Layout) -> ! {
+    unsafe { halt(10) }
+}
+
+
+#[unsafe(no_mangle)]
+pub extern "C" fn memset(s: *mut u8, c: i32, n: usize) -> *mut u8 {
+    unsafe {
+        let mut i = 0usize;
+        while i < n {
+            ptr::write(s.add(i), c as u8);
+            i += 1;
+        }
+        s
+    }
+}
+
+
+struct KernelAllocator {  }
 
 unsafe impl GlobalAlloc for KernelAllocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+	let size = layout.size();
+	let align = layout.align();
+
+	let address: usize = core::ptr::read_volatile(VALUE);
+
+	// Overshoot relative to the last possible address
+	let overshoot: usize = address % align;
+
+	// Undershoot relative to the next possible address
+	let undershoot: usize = align  - overshoot;
+
+	let effective_address = address + undershoot;
+
+	core::ptr::write_volatile(VALUE, effective_address + 1);
+
 	
+	return effective_address as *mut u8
     }
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
     }
 }
 
 #[global_allocator]
-static A: KernelAllocator = KernelAllocator { address: 0x9000 };
+static A: KernelAllocator = KernelAllocator {  };
+
+const VALUE: *mut usize = 0x10_00_00 as *mut usize;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_start() -> ! {
-	const VALUE: *mut u8 = 0x8050 as *mut u8;
-	
-	let my_vec: Vec<u8> = 10;
+	let my_vec: alloc::vec::Vec<u8> = alloc::vec![10];
 
 	loop {
 		unsafe {

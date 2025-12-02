@@ -8,6 +8,7 @@
   "vendor": "unknown",
   "linker-flavor": "ld.lld",
   "linker": "ld.lld",
+  "relocation-model": "static",
   "pre-link-args": {
     "ld.lld": ["-Tlayout.ld"]
   },

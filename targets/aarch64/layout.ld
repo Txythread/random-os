@@ -14,6 +14,14 @@ SECTIONS
 	.rodata : { *(.rodata*) } :text
 	.data : { *(.data*) } :data
 	.bss : { *(.bss*) } :data
+	.eh_frame_hdr : { *(.eh_frame_hdr*) } :data
+	.strtab : { *(.strtab*) } :data
+	
+	.stack (NOLOAD) : {
+        	stack_start = .;            /* address of start (bottom) of stack */
+        	. += 16K;                   /* size of stack, e.g., 16 KiB */
+        	kernel_stack = .;              /* address of top of stack */
+    	} :data
 }
 
 PHDRS
