@@ -17,9 +17,6 @@ codegen-units = 1
 [profile.release]
 codegen-units = 1
 
-[profile.dev]
-codegen-units = 1
-
 [target.aarch64]
 linker = "/opt/homebrew/opt/llvm/bin/ld.lld"
 rustflags = ["-C", "link-arg=--script=targets/aarch64/layout.ld"]
