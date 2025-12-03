@@ -7,6 +7,21 @@ extern crate alloc;
 use core::panic::PanicInfo;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
+use core::fmt::{self, Write};
+
+pub unsafe fn uart_putc(c: u8) {
+    unsafe {
+        core::ptr::write_volatile(0x0900_0000 as *mut u8, c);
+    }
+}
+
+pub unsafe fn uart_print(s: &str) {
+	unsafe {
+		for c in s.chars() {
+			uart_putc(c as u8);
+		}
+	}
+}
 
 #[unsafe(no_mangle)]
 pub extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
@@ -57,7 +72,7 @@ unsafe impl GlobalAlloc for KernelAllocator {
 
 	let effective_address = address + undershoot;
 
-	core::ptr::write_volatile(VALUE, effective_address + 1);
+	core::ptr::write_volatile(VALUE, effective_address + size + 1);
 
 	
 	return effective_address as *mut u8
@@ -74,7 +89,10 @@ const VALUE: *mut usize = 0x10_00_00 as *mut usize;
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_start() -> ! {
 	let my_vec: alloc::vec::Vec<u8> = alloc::vec![10];
-
+	
+	unsafe {
+		uart_print("was geht ab in rumänien?");
+	}
 	loop {
 		unsafe {
 			core::ptr::write_volatile(VALUE, *VALUE+1);
@@ -89,8 +107,8 @@ unsafe fn halt(code: u64) -> ! {
 	#[cfg(target_arch="aarch64")]
 	unsafe {
 		core::arch::asm!(
-			"mov x0, {0}",
-			"mov x1, 0x18", // EXIT
+			"mov x1, {0}",
+			"mov x0, 0x18", // EXIT
 			"hlt 0xF000", // semi-hosting call
 			in(reg) code,
 			options(noreturn)
@@ -105,11 +123,6 @@ unsafe fn halt(code: u64) -> ! {
 		);
 	}
 }
-
-/*unsafe fn kernel_print(msg: String) {
-	todo!();
-}*/
-
 
 #[panic_handler]
 fn panic<'b>(_: &PanicInfo::<'b>) -> ! {

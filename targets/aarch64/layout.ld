@@ -8,6 +8,14 @@ SECTIONS
 		KEEP(*(.text.trampoline))
 	}
 
+	. = 0x00010;
+
+	.stack (NOLOAD) : {
+        	stack_start = .;            /* address of start (bottom) of stack */
+        	. += 4K;                   /* size of supervisor stack */
+        	kernel_stack = .;              /* address of top of stack, 0x4010 */
+    	} :data
+
 	/* The actual kernel sits here */
 	. = 0x80000;             /* Load address for QEMU virt if possible */
 	.text : { *(.text*) } :text
@@ -17,13 +25,7 @@ SECTIONS
 	.eh_frame_hdr : { *(.eh_frame_hdr*) } :data
 	.strtab : { *(.strtab*) } :data
 	
-	.stack (NOLOAD) : {
-        	stack_start = .;            /* address of start (bottom) of stack */
-        	. += 16K;                   /* size of stack, e.g., 16 KiB */
-        	kernel_stack = .;              /* address of top of stack */
-    	} :data
 }
-
 PHDRS
 {
     text PT_LOAD;
