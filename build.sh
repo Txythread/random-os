@@ -12,9 +12,6 @@ cp targets/$TARGET/layout.ld layout.ld
 mkdir -p target/$TARGET
 clang --target=$CLANG_TARGET -c targets/$TARGET/trampoline.s -o target/$TARGET/boot-trampoline.o
 
-# Build other binary data
-clang --target=$CLANG_TARGET -c src/asm/$TARGET/handle_alloc_error.s -o target/$TARGET/handle_alloc_error.o
-
 
 # Optionally assemble the reset vector for the target
 ls target

@@ -7,7 +7,6 @@ extern crate alloc;
 use core::panic::PanicInfo;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
-use core::fmt::{self, Write};
 
 pub unsafe fn uart_putc(c: u8) {
     unsafe {
@@ -37,7 +36,7 @@ pub extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
 }
 
 #[alloc_error_handler]
-fn handle_alloc_error(layout: Layout) -> ! {
+fn handle_alloc_error(_layout: Layout) -> ! {
     unsafe { halt(10) }
 }
 
@@ -62,7 +61,7 @@ unsafe impl GlobalAlloc for KernelAllocator {
 	let size = layout.size();
 	let align = layout.align();
 
-	let address: usize = core::ptr::read_volatile(VALUE);
+	let address: usize = unsafe { core::ptr::read_volatile(VALUE) };
 
 	// Overshoot relative to the last possible address
 	let overshoot: usize = address % align;
@@ -72,12 +71,13 @@ unsafe impl GlobalAlloc for KernelAllocator {
 
 	let effective_address = address + undershoot;
 
-	core::ptr::write_volatile(VALUE, effective_address + size + 1);
-
+	unsafe {
+		core::ptr::write_volatile(VALUE, effective_address + size + 1);
+	}
 	
 	return effective_address as *mut u8
     }
-    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+    unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
     }
 }
 
@@ -88,7 +88,7 @@ const VALUE: *mut usize = 0x10_00_00 as *mut usize;
 
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_start() -> ! {
-	let my_vec: alloc::vec::Vec<u8> = alloc::vec![10];
+	let _my_vec: alloc::vec::Vec<u8> = alloc::vec![10];
 	
 	unsafe {
 		uart_print("was geht ab in rumänien?");
