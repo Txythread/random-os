@@ -1,6 +1,7 @@
 *.img
 *.iso
 *.bin
+qemu.log
 grub
 target/
 .idea
