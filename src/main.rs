@@ -17,7 +17,16 @@ pub unsafe fn uart_putc(c: u8) {
 pub unsafe fn uart_print(s: &str) {
 	unsafe {
 		for c in s.chars() {
-			uart_putc(c as u8);
+			let mut bytes: [u8; 4] = [0; 4];
+			c.encode_utf8(&mut bytes);
+
+			for i in 0..bytes.len() {
+				let byte = bytes[i];
+				
+				if byte != 0 {
+					uart_putc(byte);
+				}
+			}
 		}
 	}
 }
@@ -96,21 +105,6 @@ unsafe impl GlobalAlloc for KernelAllocator {
 static A: KernelAllocator = KernelAllocator {  };
 
 const VALUE: *mut usize = 0x10_00_00 as *mut usize;
-
-#[unsafe(no_mangle)]
-pub extern "C" fn _kernel_start() -> ! {
-	let _my_vec: alloc::vec::Vec<u8> = alloc::vec![10];
-	
-	unsafe {
-		uart_print("was geht ab in rumänien?");
-	}
-	loop {
-		unsafe {
-			core::ptr::write_volatile(VALUE, *VALUE+1);
-			halt(0);
-		}
-	}
-}
 
 unsafe fn halt(code: u64) -> ! {
 	// Arm64 halt
