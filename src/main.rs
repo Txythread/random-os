@@ -55,7 +55,14 @@ pub extern "C" fn memset(s: *mut u8, c: i32, n: usize) -> *mut u8 {
 
 #[unsafe(export_name = "efi_main")]
 pub extern "C" fn efi_main(_h: *mut core::ffi::c_void, _st: *mut core::ffi::c_void) -> usize {
-    0
+	
+	unsafe { 
+		uart_print("was geht ab in rumänien?"); 
+		halt(0);
+	}
+
+	loop {}
+    	0
 }
 
 struct KernelAllocator {  }
