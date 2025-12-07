@@ -4,45 +4,20 @@
 
 extern crate alloc;
 
+use alloc::vec;
 use core::panic::PanicInfo;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ptr;
+use alloc::format;
+use crate::print::*;
+use log::info;
+use uefi::prelude::*;
+use uefi::boot::*;
+use uefi::allocator::Allocator;
 
-pub unsafe fn uart_putc(c: u8) {
-    unsafe {
-        core::ptr::write_volatile(0x0900_0000 as *mut u8, c);
-    }
-}
+mod print;
+mod memory;
 
-pub unsafe fn uart_print(s: &str) {
-	unsafe {
-		for c in s.chars() {
-			let mut bytes: [u8; 4] = [0; 4];
-			c.encode_utf8(&mut bytes);
-
-			for i in 0..bytes.len() {
-				let byte = bytes[i];
-				
-				if byte != 0 {
-					uart_putc(byte);
-				}
-			}
-		}
-	}
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn memcpy(dest: *mut u8, src: *const u8, n: usize) -> *mut u8 {
-    // Simple non-overlap implementation (good enough for kernel use)
-    unsafe {
-        let mut i = 0usize;
-        while i < n {
-            ptr::write(dest.add(i), ptr::read(src.add(i)));
-            i += 1;
-        }
-        dest
-    }
-}
 
 #[alloc_error_handler]
 fn handle_alloc_error(_layout: Layout) -> ! {
@@ -62,16 +37,30 @@ pub extern "C" fn memset(s: *mut u8, c: i32, n: usize) -> *mut u8 {
     }
 }
 
-#[unsafe(export_name = "efi_main")]
-pub extern "C" fn efi_main(_h: *mut core::ffi::c_void, _st: *mut core::ffi::c_void) -> usize {
-	
-	unsafe { 
-		uart_print("was geht ab in rumänien?"); 
-		halt(0);
-	}
+#[entry]
+fn main() -> Status {
+	uefi::helpers::init().unwrap();
+
+	println!("Was geht ab in Rumänien?");
+
+	let was_geht = vec![10, 11];
+
+	println!("Alles geht in Rumänien");
+
+	println!("was geht {}", 10);
+	let vector = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+	let map = unsafe { exit_boot_services(None) };
+
+	unsafe { halt(0); }
+	println!("UEFI Services terminated.");
+
+
 
 	loop {}
-    	0
+
+
+
+    	Status::SUCCESS
 }
 
 struct KernelAllocator {  }
@@ -100,9 +89,8 @@ unsafe impl GlobalAlloc for KernelAllocator {
     unsafe fn dealloc(&self, _ptr: *mut u8, _layout: Layout) {
     }
 }
-
 #[global_allocator]
-static A: KernelAllocator = KernelAllocator {  };
+static A: Allocator = Allocator;
 
 const VALUE: *mut usize = 0x10_00_00 as *mut usize;
 

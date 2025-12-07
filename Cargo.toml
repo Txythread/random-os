@@ -7,8 +7,10 @@ edition = "2024"
 target = "targets/aarch64-unknown-none.json"
 
 [dependencies]
+log = "0.4.29"
 spin = "0.10.0"
 uart = "3.0.1"
+uefi = "0.36.1"
 
 [unstable]
 build-std = ["core", "compiler_builtins"]
